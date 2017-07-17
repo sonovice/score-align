@@ -10,7 +10,7 @@ import numpy as np
 
 import pytube
 from audioread import NoBackendError
-from falcon import HTTP_400, HTTP_415
+from falcon import HTTP_BAD_REQUEST, HTTP_UNSUPPORTED_MEDIA_TYPE
 from lxml import etree
 from pydub import AudioSegment
 
@@ -106,7 +106,7 @@ def get_alignment_from_audio(body, response):
     multipart_data = list(body.keys())
 
     if 'mei' not in multipart_data or 'audio' not in multipart_data:
-        response.status = HTTP_400
+        response.status = HTTP_BAD_REQUEST
         return 'Please provide MEI and audio file.'
 
     # Work in temporary directory
@@ -120,7 +120,7 @@ def get_alignment_from_audio(body, response):
         try:
             wave_data, sr = librosa.load(audio_path)
         except NoBackendError:
-            response.status = HTTP_415
+            response.status = HTTP_UNSUPPORTED_MEDIA_TYPE
             return 'Unsupported audio format.'
 
     # Generate timestamps for all notes and rests of the MEI file
@@ -133,7 +133,7 @@ def get_alignment_from_audio(body, response):
         debug_mei_xml = mei.toXML()
     except jpype.JavaException:
         # TODO Proper exception handling
-        response.status = HTTP_400
+        response.status = HTTP_BAD_REQUEST
         return 'Error during processing of MEI file.'
 
     # Calculate MEI chroma features
@@ -166,7 +166,7 @@ def get_alignment_from_yt(body, response):
     multipart_data = list(body.keys())
 
     if 'mei' not in multipart_data or 'youtube-url' not in body:
-        response.status = HTTP_400
+        response.status = HTTP_BAD_REQUEST
         return 'Please provide MEI and a valid YouTube link.'
 
     # Work in temporary directory
@@ -205,7 +205,7 @@ def get_alignment_from_yt(body, response):
         debug_mei_xml = mei.toXML()
     except jpype.JavaException:
         # TODO Proper exception handling
-        response.status = HTTP_400
+        response.status = HTTP_BAD_REQUEST
         return 'Error during processing of MEI file.'
 
     # Calculate MEI chroma features

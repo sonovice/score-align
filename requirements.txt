@@ -6,3 +6,4 @@ numpy
 jpype1
 pytube
 pydub
+audioread
