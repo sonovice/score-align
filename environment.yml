@@ -1,0 +1,16 @@
+name: score-align
+
+channels:
+  - conda-forge
+
+dependencies:
+  - python=3.5
+  - gunicorn
+  - hug
+  - librosa
+  - lxml
+  - numba
+  - numpy
+  - jpype1
+  - pytube
+  - pydub
