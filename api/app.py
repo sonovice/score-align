@@ -1,5 +1,6 @@
 import math
 import os
+import pprint
 import subprocess
 import tempfile
 
@@ -64,7 +65,10 @@ def from_meico(xml, begin=0, end=np.inf, norm=True):
         if notes_and_rests[elem]['pitch'] is not None:
             end = math.ceil((notes_and_rests[elem]['date'] + notes_and_rests[elem]['dur']) / shortest_duration)
             for c in range(begin, end):
-                chroma_matrix[notes_and_rests[elem]['pitch'] % 12, c] += 1
+                try:
+                    chroma_matrix[notes_and_rests[elem]['pitch'] % 12, c] += 1
+                except IndexError:
+                    pass
 
     # normalize every chroma feature
     if norm:
@@ -73,7 +77,7 @@ def from_meico(xml, begin=0, end=np.inf, norm=True):
     return chroma_matrix, id_to_chroma_index
 
 
-def detect_leading_silence(sound, silence_threshold=-50.0, chunk_size=10):
+def detect_leading_silence(sound, silence_threshold=-40.0, chunk_size=10):
     '''
     sound is a pydub.AudioSegment
     silence_threshold in dB
@@ -97,12 +101,18 @@ jpype.startJVM(
 )
 
 
+@hug.response_middleware()
+def process_data(request, response, resource):
+    response.set_header('Access-Control-Allow-Origin', '*')
+
+
 @hug.post()
 def get_alignment_from_audio(body, response):
     """Calculate alignment of an MEI file to an audio file.
     
     Returns a dictionary containing IDs of rests and notes as keys
     and their corresponding position in the audiofile as values."""
+
     multipart_data = list(body.keys())
 
     if 'mei' not in multipart_data or 'audio' not in multipart_data:
@@ -230,4 +240,4 @@ def get_alignment_from_yt(body, response):
 
 
 if __name__ == '__main__':
-    hug.API(__name__).http.serve()
+    hug.API(__name__).http.serve(port=8080)
