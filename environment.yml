@@ -12,6 +12,8 @@ dependencies:
   - numba
   - numpy
   - jpype1
-  - pytube
-  - pydub
   - audioread
+  - pip
+  - pip:
+    - pytube
+    - pydub
