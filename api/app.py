@@ -240,4 +240,4 @@ def get_alignment_from_yt(body, response):
 
 
 if __name__ == '__main__':
-    hug.API(__name__).http.serve(port=8000)
+    hug.API(__name__).http.serve(host='0.0.0.0', port=8000)
