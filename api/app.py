@@ -183,9 +183,10 @@ def get_alignment_from_yt(body, response):
     with tempfile.TemporaryDirectory() as temp_dir:
         # Download YouTube video
         youtube_url = body['youtube-url'].decode()
-        video = pytube.YouTube(youtube_url).filter('mp4')[0]
+        
+        video = pytube.YouTube(youtube_url).streams.order_by('resolution').asc().first()
         video.download(temp_dir)
-        video_path = os.path.join(temp_dir, '{0}.{1}'.format(video.filename, video.extension))
+        video_path = os.path.join(temp_dir, video.default_filename)
 
         # Extract audio using FFmpeg
         audio_path = os.path.join(temp_dir, 'audio.wav')
@@ -203,7 +204,7 @@ def get_alignment_from_yt(body, response):
         trim_start = detect_leading_silence(audio)
         trim_end = detect_leading_silence(audio.reverse())
         trimmed = audio[trim_start:len(audio) - trim_end]
-        wave_data = np.asarray(trimmed.get_array_of_samples())
+        wave_data = np.asarray(trimmed.get_array_of_samples(), dtype=np.float)
 
     # Generate timestamps for all notes and rests of the MEI file
     Mei = jpype.JPackage('meico').mei.Mei  # Get Mei class
