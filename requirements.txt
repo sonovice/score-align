@@ -1,9 +1,0 @@
-hug
-librosa
-lxml
-numba
-numpy
-jpype1
-pytube
-pydub
-audioread
