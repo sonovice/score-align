@@ -15,6 +15,6 @@ dependencies:
   - requests
   - pip
   - pip:
-    - git+https://github.com/nficano/pytube.git
+    - "--editable=git+https://github.com/nficano/pytube.git"
     - pydub
     - gunicorn
