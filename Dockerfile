@@ -5,6 +5,7 @@ ENTRYPOINT ["/bin/bash", "-c"]
 
 RUN apt-get update --fix-missing && \
     apt-get install -y \
+        git \
         bzip2 \
         ca-certificates \
         libglib2.0-0 libxext6 libsm6 libxrender1 \
@@ -31,5 +32,5 @@ COPY api /api
 COPY environment.yml /api/
 RUN conda env create
 
-EXPOSE 8000
-CMD ["source activate score-align && exec gunicorn --bind=0.0.0.0:8000 --timeout 180 app:__hug_wsgi__"]
+EXPOSE 8001
+CMD ["source activate score-align && exec gunicorn --bind=0.0.0.0:8001 --timeout 180 app:__hug_wsgi__"]

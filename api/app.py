@@ -1,19 +1,57 @@
 import math
+import multiprocessing as mp
 import os
 import pprint
 import subprocess
+import sys
 import tempfile
 
 import hug
 import jpype
 import librosa
 import numpy as np
+import requests
 
-import pytube
+from pytube import YouTube
 from audioread import NoBackendError
 from falcon import HTTP_BAD_REQUEST, HTTP_UNSUPPORTED_MEDIA_TYPE
 from lxml import etree
 from pydub import AudioSegment
+
+
+
+CHUNK_SIZE = 3 * 2**20  # bytes
+
+def download_video(video_url, itag, filename):
+    stream = YouTube(video_url).streams.get_by_itag(itag)
+    url = stream.url
+    filesize = stream.filesize
+
+    ranges = [[url, i * CHUNK_SIZE, (i+1) * CHUNK_SIZE - 1] for i in range(math.ceil(filesize / CHUNK_SIZE))]
+    ranges[-1][2] = None  # Last range must be to the end of file, so it will be marked as None
+
+    pool = mp.Pool(min(len(ranges), 64))
+    chunks = [0 for _ in ranges]
+    
+    for i, chunk_tuple in enumerate(pool.imap_unordered(download_chunk, enumerate(ranges)), 1):
+        idx, chunk = chunk_tuple
+        chunks[idx] = chunk
+        sys.stderr.write('\rDone: {0:%}'.format(i/len(ranges)))
+
+    with open(filename, 'wb') as outfile:
+        for chunk in chunks:
+            outfile.write(chunk)
+
+def download_chunk(args):
+    idx, args = args
+    url, start, finish = args
+    range_string = '{}-'.format(start)
+
+    if finish is not None:
+        range_string += str(finish)
+
+    response = requests.get(url, headers={'Range': 'bytes=' + range_string})
+    return idx, response.content
 
 
 def from_meico(xml, begin=0, end=np.inf, norm=True):
@@ -183,10 +221,8 @@ def get_alignment_from_yt(body, response):
     with tempfile.TemporaryDirectory() as temp_dir:
         # Download YouTube video
         youtube_url = body['youtube-url'].decode()
-        
-        video = pytube.YouTube(youtube_url).streams.order_by('resolution').asc().first()
-        video.download(temp_dir)
-        video_path = os.path.join(temp_dir, video.default_filename)
+        video_path = os.path.join(temp_dir, 'youtube.audio')
+        download_video(youtube_url, 249, video_path) # 249 = <Stream: itag="249" mime_type="audio/webm" abr="50kbps" acodec="opus">
 
         # Extract audio using FFmpeg
         audio_path = os.path.join(temp_dir, 'audio.wav')
@@ -241,4 +277,4 @@ def get_alignment_from_yt(body, response):
 
 
 if __name__ == '__main__':
-    hug.API(__name__).http.serve(host='0.0.0.0', port=8000)
+    hug.API(__name__).http.serve(host='0.0.0.0', port=8001)
