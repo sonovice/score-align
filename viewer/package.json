@@ -11,7 +11,7 @@
     "lint": "eslint --ext .js,.vue src"
   },
   "dependencies": {
-    "buefy": "^0.5.2",
+    "buefy": "^0.7.2",
     "d3": "^4.10.2",
     "font-awesome": "^4.7.0",
     "get-youtube-id": "^1.0.0",
