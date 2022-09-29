@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "buefy": "^0.5.2",
-    "d3": "^4.10.2",
+    "d3": "^7.6.1",
     "font-awesome": "^4.7.0",
     "get-youtube-id": "^1.0.0",
     "jquery": "^3.5.0",
